@@ -1,0 +1,44 @@
+version: '3.5'
+
+services:
+  frontend:
+    container_name: frontend
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    environment:
+      - NODE_PATH=/usr/src/frontend/src
+      - REACT_APP_ENV=production
+      - HTTPS=true
+    env_file:
+      - ./common.env
+    depends_on:
+      - api
+
+  api:
+    container_name: api
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+      args:
+        PACKAGE_PATH: api
+        WORKING_DIR: /usr/src/
+    expose:
+      - 8000
+    ports:
+      - 8000:8000
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - ./common.env
+    volumes:
+      - .:/src
+    depends_on:
+      - postgres
+    command: ["npm", "start"]
+
+  postgres:
+    image: postgres
+    restart: always
+    env_file:
+      ./common.env

@@ -1,0 +1,62 @@
+version: '3.5'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+      args:
+        PACKAGE_PATH: api
+        WORKING_DIR: /usr/src/
+    expose:
+      - 8000
+    ports:
+      - 8000:8000
+    environment:
+      - NODE_ENV=development
+    env_file:
+      - ./common.env
+    volumes:
+      - ./api:/usr/src
+    depends_on:
+      - postgres
+      - adminer
+    command: ["npm", "start"]
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+      args:
+        PACKAGE_PATH: frontend
+        WORKING_DIR: /usr/src/
+    expose:
+      - 3000
+    ports:
+      - 3000:3000
+    environment:
+      - REACT_APP_ENV=development
+      - BACKEND=api:8000
+      - HTTPS=true
+      - NODE_PATH=/usr/src/
+    env_file:
+      - ./common.env
+    volumes:
+      - ./frontend:/usr/src
+    depends_on:
+      - api
+    command: ["npm", "start"]
+
+  postgres:
+    image: postgres
+    restart: always
+    env_file:
+      ./common.env
+
+  adminer:
+    image: adminer
+    restart: always
+    env_file:
+      ./common.env
+    ports:
+      - 8080:8080
